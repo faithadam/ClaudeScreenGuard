@@ -3,8 +3,9 @@ name: Build
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]
   pull_request:
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 permissions:
@@ -24,7 +25,8 @@ jobs:
         id: ver
         shell: pwsh
         run: |
-          if ($env:GITHUB_REF -like 'refs/tags/v*') { $v = $env:GITHUB_REF_NAME.Substring(1) } else { $v = "0.0.0-dev" }
+          $ref = if ($env:GITHUB_EVENT_NAME -eq 'release') { "${{ github.event.release.tag_name }}" } else { $env:GITHUB_REF_NAME }
+          if ($ref -like 'v*') { $v = $ref.Substring(1) } else { $v = "0.0.0-dev" }
           "version=$v" >> $env:GITHUB_OUTPUT
 
       - name: Installer
@@ -58,8 +60,8 @@ jobs:
           path: dist/*
 
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name }}
           files: dist/*
-          generate_release_notes: true

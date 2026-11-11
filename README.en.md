@@ -77,7 +77,7 @@ No Visual Studio needed — the C# compiler that ships with Windows is enough:
 scripts\build.bat
 ```
 
-The program ends up in `bin\ClaudeScreenGuard.exe`. The installer is built from `installer\ClaudeScreenGuard.iss` with [Inno Setup 6](https://jrsoftware.org/isinfo.php). Pushing a `v*` tag makes GitHub Actions build and publish a release.
+The program ends up in `bin\ClaudeScreenGuard.exe`. The installer is built from `installer\ClaudeScreenGuard.iss` with [Inno Setup 6](https://jrsoftware.org/isinfo.php). Publishing a GitHub Release makes GitHub Actions build and attach the installer.
 
 ## License
 

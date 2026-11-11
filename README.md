@@ -77,7 +77,7 @@ Claude 使用电脑（computer use）时，会把**没授权给它的程序**藏
 scripts\build.bat
 ```
 
-生成的程序在 `bin\ClaudeScreenGuard.exe`。安装包用 [Inno Setup 6](https://jrsoftware.org/isinfo.php) 编译 `installer\ClaudeScreenGuard.iss`。推送 `v*` 标签时，GitHub Actions 会自动编译并发布。
+生成的程序在 `bin\ClaudeScreenGuard.exe`。安装包用 [Inno Setup 6](https://jrsoftware.org/isinfo.php) 编译 `installer\ClaudeScreenGuard.iss`。在 GitHub 上发布一个 Release 时，GitHub Actions 会自动编译并把安装包附上去。
 
 ## 许可证
 
