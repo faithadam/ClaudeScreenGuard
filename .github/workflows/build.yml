@@ -1,0 +1,60 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile
+        shell: cmd
+        run: scripts\build.bat
+
+      - name: Version
+        id: ver
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*') { $v = $env:GITHUB_REF_NAME.Substring(1) } else { $v = "0.0.0-dev" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          $bundled = "${env:ProgramFiles(x86)}\Inno Setup 6\Languages\ChineseSimplified.isl"
+          if (Test-Path $bundled) { Copy-Item $bundled installer\ChineseSimplified.isl }
+          else {
+            try { Invoke-WebRequest "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl" -OutFile installer\ChineseSimplified.isl }
+            catch { Write-Host "Chinese installer language not available; building English-only installer." }
+          }
+          & $iscc "/DMyAppVersion=${{ steps.ver.outputs.version }}" installer\ClaudeScreenGuard.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Force -Path bin\ClaudeScreenGuard.exe, README.md, README.en.md, LICENSE -DestinationPath "dist\ClaudeScreenGuard-portable-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeScreenGuard-${{ steps.ver.outputs.version }}
+          path: dist/*
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

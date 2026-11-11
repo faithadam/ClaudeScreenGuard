@@ -1,0 +1,8 @@
+bin/
+dist/
+installer/ChineseSimplified.isl
+config.ini
+config.ini.old
+guard.log
+guard.log.old
+frost_preview.png
