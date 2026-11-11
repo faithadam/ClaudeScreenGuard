@@ -35,10 +35,15 @@ jobs:
           $bundled = "${env:ProgramFiles(x86)}\Inno Setup 6\Languages\ChineseSimplified.isl"
           if (Test-Path $bundled) { Copy-Item $bundled installer\ChineseSimplified.isl }
           else {
-            try { Invoke-WebRequest "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl" -OutFile installer\ChineseSimplified.isl }
-            catch { Write-Host "Chinese installer language not available; building English-only installer." }
+            try { Invoke-WebRequest "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl" -OutFile installer\ChineseSimplified.isl }
+            catch { Write-Host "Chinese installer language not available." }
           }
           & $iscc "/DMyAppVersion=${{ steps.ver.outputs.version }}" installer\ClaudeScreenGuard.iss
+          if ($LASTEXITCODE -ne 0 -and (Test-Path installer\ChineseSimplified.isl)) {
+            Write-Host "Retrying without the Chinese installer language."
+            Remove-Item installer\ChineseSimplified.isl
+            & $iscc "/DMyAppVersion=${{ steps.ver.outputs.version }}" installer\ClaudeScreenGuard.iss
+          }
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Portable zip
